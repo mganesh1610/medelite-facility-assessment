@@ -1,0 +1,2 @@
+"""Medelite facility assessment backend."""
+

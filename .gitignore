@@ -1,0 +1,19 @@
+.venv/
+__pycache__/
+**/__pycache__/
+.pytest_cache/
+.mypy_cache/
+.env
+.env.*
+!.env.example
+node_modules/
+frontend/node_modules/
+frontend/dist/
+backend/app/static/
+dist/
+*.pyc
+*.log
+tmp/
+Healthcare Data Automation Case Materials/
+*.pdf
+*.docx

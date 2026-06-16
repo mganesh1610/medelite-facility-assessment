@@ -368,6 +368,7 @@ select:focus-visible {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(300px, 0.7fr);
   gap: 18px;
+  align-items: start;
 }
 
 .analytics-card,
@@ -464,8 +465,35 @@ select:focus-visible {
 
 .quality-card {
   display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
   align-content: start;
   gap: 12px;
+  height: var(--quality-card-height, auto);
+  max-height: var(--quality-card-height, none);
+  overflow: hidden;
+}
+
+.quality-card .qa-check-list {
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-color: var(--border-strong) transparent;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.quality-card .qa-check-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.quality-card .qa-check-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+
+.quality-card .qa-check-list::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .quality-summary {
@@ -760,6 +788,18 @@ select:focus-visible {
     align-items: flex-start;
     flex-direction: column;
     gap: 4px;
+  }
+
+  .quality-card {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .quality-card .qa-check-list {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
   }
 
   .preview-row {

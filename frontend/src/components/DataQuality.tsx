@@ -1,16 +1,18 @@
 import { CheckCircle2, ShieldCheck, XCircle } from "lucide-react";
+import type { CSSProperties } from "react";
 import type { DataQualityCheck } from "../types";
 
-export function DataQuality({ checks }: { checks: DataQualityCheck[] }) {
+export function DataQuality({ checks, maxHeight }: { checks: DataQualityCheck[]; maxHeight?: number | null }) {
   const orderedChecks = [...checks].sort((a, b) => {
     if (a.status === b.status) return 0;
     return a.status === "fail" ? -1 : 1;
   });
   const failedCount = orderedChecks.filter((check) => check.status === "fail").length;
   const summary = failedCount ? `${failedCount} item${failedCount === 1 ? "" : "s"} need review` : "All checks passed";
+  const style = maxHeight ? ({ "--quality-card-height": `${maxHeight}px` } as CSSProperties) : undefined;
 
   return (
-    <section className="quality-card">
+    <section className="quality-card" style={style}>
       <div className="section-heading inline">
         <div>
           <span className="kicker">QA</span>

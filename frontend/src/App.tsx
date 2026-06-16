@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, Building2, Database, MapPin, RefreshCcw } from "lucide-react";
 import { DataQuality } from "./components/DataQuality";
 import { Header } from "./components/Header";
@@ -18,6 +18,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState("");
+  const opportunityPanelRef = useRef<HTMLElement | null>(null);
+  const [qualityPanelHeight, setQualityPanelHeight] = useState<number | null>(null);
 
   const payload = useMemo<AssessmentRequest>(() => ({ ccn, manual }), [ccn, manual]);
 
@@ -52,6 +54,27 @@ export default function App() {
   }
 
   const showDashboard = assessment && !loading;
+
+  useLayoutEffect(() => {
+    if (!showDashboard || !opportunityPanelRef.current) {
+      setQualityPanelHeight(null);
+      return;
+    }
+
+    const panel = opportunityPanelRef.current;
+    const updateQualityHeight = () => {
+      setQualityPanelHeight(Math.ceil(panel.getBoundingClientRect().height));
+    };
+
+    updateQualityHeight();
+    const observer = new ResizeObserver(updateQualityHeight);
+    observer.observe(panel);
+    window.addEventListener("resize", updateQualityHeight);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateQualityHeight);
+    };
+  }, [showDashboard, assessment]);
 
   return (
     <div className="app-shell">
@@ -105,8 +128,8 @@ export default function App() {
               <RatingCards ratings={assessment.ratings} />
 
               <div className="analytics-grid">
-                <OpportunityPanel opportunity={assessment.opportunity} />
-                <DataQuality checks={assessment.data_quality_checks} />
+                <OpportunityPanel opportunity={assessment.opportunity} panelRef={opportunityPanelRef} />
+                <DataQuality checks={assessment.data_quality_checks} maxHeight={qualityPanelHeight} />
               </div>
 
               <MetricChart metrics={assessment.metrics} />

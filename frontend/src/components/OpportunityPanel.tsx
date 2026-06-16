@@ -1,9 +1,10 @@
 import { Gauge, TriangleAlert } from "lucide-react";
+import type { Ref } from "react";
 import type { OpportunityScore } from "../types";
 
-export function OpportunityPanel({ opportunity }: { opportunity: OpportunityScore }) {
+export function OpportunityPanel({ opportunity, panelRef }: { opportunity: OpportunityScore; panelRef?: Ref<HTMLElement> }) {
   return (
-    <section className="analytics-card opportunity-card">
+    <section className="analytics-card opportunity-card" ref={panelRef}>
       <div className="section-heading inline">
         <div>
           <span className="kicker">Decision Support</span>
@@ -39,4 +40,3 @@ export function OpportunityPanel({ opportunity }: { opportunity: OpportunityScor
     </section>
   );
 }
-

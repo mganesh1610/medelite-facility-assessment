@@ -13,8 +13,8 @@ export function MetricChart({ metrics }: { metrics: MetricComparison[] }) {
   return (
     <section className="analytics-card chart-card">
       <div className="section-heading">
-        <span className="kicker">Bonus Analytics</span>
-        <h2>Facility vs State vs National</h2>
+        <span className="kicker">Performance Analytics</span>
+        <h2>Facility Performance vs State and National Benchmarks</h2>
       </div>
       <div className="chart-wrap" role="img" aria-label="Grouped bar chart comparing facility hospitalization and ED metrics against state and national benchmarks">
         <ResponsiveContainer width="100%" height={330}>

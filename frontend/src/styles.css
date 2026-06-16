@@ -191,10 +191,31 @@ select:focus-visible {
 }
 
 .lookup-panel {
+  --lookup-sticky-top: 102px;
+  --lookup-bottom-gap: 22px;
   position: sticky;
-  top: 102px;
+  top: var(--lookup-sticky-top);
   align-self: start;
+  max-height: calc(100dvh - var(--lookup-sticky-top) - var(--lookup-bottom-gap));
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 18px;
+  scrollbar-color: var(--border-strong) transparent;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.lookup-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.lookup-panel::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+
+.lookup-panel::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .panel-heading,
@@ -736,6 +757,9 @@ select:focus-visible {
 
   .lookup-panel {
     position: static;
+    max-height: none;
+    overflow: visible;
+    overscroll-behavior: auto;
   }
 
   .field-group {

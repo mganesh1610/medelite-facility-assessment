@@ -73,6 +73,14 @@ export type DataQualityIssue = {
   severity: "info" | "warning" | "error";
 };
 
+export type DataQualityCheck = {
+  key: string;
+  label: string;
+  status: "pass" | "fail";
+  message: string;
+  severity: "success" | "warning" | "error";
+};
+
 export type AssessmentResponse = {
   facility: FacilitySource;
   ratings: RatingCard[];
@@ -80,6 +88,7 @@ export type AssessmentResponse = {
   report_rows: ReportRow[];
   opportunity: OpportunityScore;
   data_quality: DataQualityIssue[];
+  data_quality_checks: DataQualityCheck[];
   exports: {
     pdf: string;
     docx: string;
@@ -88,4 +97,3 @@ export type AssessmentResponse = {
   api_latency_ms: number;
   bigquery_logging: string;
 };
-

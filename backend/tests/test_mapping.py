@@ -80,3 +80,52 @@ def test_build_assessment_includes_required_and_bonus_rows() -> None:
     assert rows["Medicare Care Compare Source"].endswith("/686123/view-all?state=FL")
     assert len(assessment.metrics) == 4
     assert assessment.opportunity.score >= 0
+    assert len(assessment.data_quality_checks) == 8
+    assert all(check.status == "pass" for check in assessment.data_quality_checks)
+    assert assessment.data_quality == []
+
+
+def test_data_quality_checks_put_missing_items_first() -> None:
+    request = AssessmentRequest(
+        ccn="686123",
+        manual=ManualInputs(
+            emr="",
+            current_census=None,
+            patient_type="Long-term",
+            previous_coverage="",
+            previous_provider_performance="",
+            medical_coverage="",
+        ),
+    )
+    provider = {
+        "provider_name": "KENDALL LAKES HEALTHCARE AND REHAB CENTER",
+        "provider_address": "5280 SW 157 AVENUE",
+        "citytown": "MIAMI",
+        "state": "FL",
+        "zip_code": "33185",
+        "number_of_certified_beds": "",
+        "overall_rating": "",
+        "health_inspection_rating": "5",
+        "staffing_rating": "2",
+        "qm_rating": "5",
+        "processing_date": "",
+    }
+    assessment = build_assessment(
+        request=request,
+        provider=provider,
+        claims_rows=[{"measure_code": "521", "adjusted_score": "25.5"}],
+        state_avg={},
+        national_avg={},
+        api_latency_ms=123,
+        cms_request_count=3,
+        bigquery_logging="disabled",
+    )
+
+    statuses = [check.status for check in assessment.data_quality_checks]
+    first_pass_index = statuses.index("pass")
+    assert all(status == "fail" for status in statuses[:first_pass_index])
+    assert all(status == "pass" for status in statuses[first_pass_index:])
+    assert assessment.data_quality_checks[0].key == "processing_date"
+    assert {issue.field for issue in assessment.data_quality} == {
+        check.key for check in assessment.data_quality_checks if check.status == "fail"
+    }

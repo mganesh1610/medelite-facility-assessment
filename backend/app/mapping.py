@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import math
-from typing import Any
+from typing import Any, Literal
 
 from .schemas import (
     AssessmentRequest,
     AssessmentResponse,
+    DataQualityCheck,
     DataQualityIssue,
     ExportLinks,
     FacilitySource,
@@ -88,7 +89,8 @@ def build_assessment(
 
     metrics = build_metric_comparisons(claims_rows, state_avg, national_avg)
     report_rows = build_report_rows(facility, ratings, metrics, request)
-    quality_issues = build_data_quality_issues(request, facility, ratings, metrics, provider)
+    quality_checks = build_data_quality_checks(request, facility, ratings, metrics)
+    quality_issues = build_data_quality_issues(quality_checks)
     opportunity = calculate_opportunity(facility, ratings, metrics, request)
 
     return AssessmentResponse(
@@ -98,6 +100,7 @@ def build_assessment(
         report_rows=report_rows,
         opportunity=opportunity,
         data_quality=quality_issues,
+        data_quality_checks=quality_checks,
         exports=ExportLinks(
             pdf=f"/api/reports/pdf?ccn={request.ccn}",
             docx=f"/api/reports/docx?ccn={request.ccn}",
@@ -239,28 +242,113 @@ def calculate_opportunity(
     return OpportunityScore(score=score, tier=tier, rationale=rationale[:5], signals=signals)
 
 
-def build_data_quality_issues(
+def build_data_quality_checks(
     request: AssessmentRequest,
     facility: FacilitySource,
     ratings: list[RatingCard],
     metrics: list[MetricComparison],
-    provider: dict[str, Any],
-) -> list[DataQualityIssue]:
+) -> list[DataQualityCheck]:
+    complete_ratings = [rating for rating in ratings if rating.value is not None]
+    complete_facility_metrics = [metric for metric in metrics if metric.facility is not None]
+    complete_benchmarks = [metric for metric in metrics if metric.state is not None and metric.national is not None]
+    manual_history_values = [
+        request.manual.emr,
+        request.manual.patient_type,
+        request.manual.previous_coverage,
+        request.manual.previous_provider_performance,
+        request.manual.medical_coverage,
+    ]
+    manual_history_count = sum(1 for value in manual_history_values if value not in (None, ""))
+
+    checks = [
+        make_quality_check(
+            key="cms_facility_profile",
+            label="CMS facility profile",
+            passed=bool(facility.provider_name and facility.location),
+            pass_message="Provider name and location are available from CMS.",
+            fail_message="Provider name or location is missing from CMS.",
+        ),
+        make_quality_check(
+            key="processing_date",
+            label="CMS processing date",
+            passed=bool(facility.processing_date),
+            pass_message=f"CMS processing date available: {facility.processing_date}.",
+            fail_message="CMS processing date is missing.",
+        ),
+        make_quality_check(
+            key="number_of_certified_beds",
+            label="Certified beds",
+            passed=facility.certified_beds is not None,
+            pass_message=f"Certified bed count available: {format_value(facility.certified_beds)}.",
+            fail_message="Certified bed count is missing from CMS.",
+        ),
+        make_quality_check(
+            key="current_census",
+            label="Current census",
+            passed=request.manual.current_census is not None,
+            pass_message=f"Current census entered: {format_value(request.manual.current_census)}.",
+            fail_message="Current census is manual and has not been entered.",
+        ),
+        make_quality_check(
+            key="cms_star_ratings",
+            label="CMS star ratings",
+            passed=len(complete_ratings) == len(ratings),
+            pass_message=f"All {len(ratings)} CMS star ratings are available.",
+            fail_message=f"{len(ratings) - len(complete_ratings)} of {len(ratings)} CMS star ratings are unavailable.",
+        ),
+        make_quality_check(
+            key="claims_metrics",
+            label="Hospitalization/ED facility metrics",
+            passed=len(complete_facility_metrics) == len(metrics),
+            pass_message=f"All {len(metrics)} facility hospitalization/ED metrics are available.",
+            fail_message=f"{len(metrics) - len(complete_facility_metrics)} of {len(metrics)} facility hospitalization/ED metrics are missing.",
+        ),
+        make_quality_check(
+            key="benchmark_metrics",
+            label="State and national benchmarks",
+            passed=len(complete_benchmarks) == len(metrics),
+            pass_message=f"State and national benchmarks are available for all {len(metrics)} metrics.",
+            fail_message=f"{len(metrics) - len(complete_benchmarks)} of {len(metrics)} benchmark rows are incomplete.",
+        ),
+        make_quality_check(
+            key="manual_medelite_history",
+            label="Manual Medelite history",
+            passed=manual_history_count == len(manual_history_values),
+            pass_message=f"All {len(manual_history_values)} Medelite history fields are complete.",
+            fail_message=f"{len(manual_history_values) - manual_history_count} of {len(manual_history_values)} Medelite history fields are not entered.",
+        ),
+    ]
+    return sorted(checks, key=lambda check: check.status == "pass")
+
+
+def make_quality_check(
+    key: str,
+    label: str,
+    passed: bool,
+    pass_message: str,
+    fail_message: str,
+    severity: Literal["warning", "error"] = "warning",
+) -> DataQualityCheck:
+    return DataQualityCheck(
+        key=key,
+        label=label,
+        status="pass" if passed else "fail",
+        message=pass_message if passed else fail_message,
+        severity="success" if passed else severity,
+    )
+
+
+def build_data_quality_issues(checks: list[DataQualityCheck]) -> list[DataQualityIssue]:
     issues: list[DataQualityIssue] = []
-    if not facility.processing_date:
-        issues.append(DataQualityIssue(field="processing_date", message="CMS processing date is missing.", severity="warning"))
-    for rating in ratings:
-        if rating.value is None:
-            issues.append(DataQualityIssue(field=rating.source_field, message=f"{rating.label} is unavailable in CMS.", severity="warning"))
-    for metric in metrics:
-        if metric.facility is None:
-            issues.append(DataQualityIssue(field=metric.measure_code, message=f"{metric.label} is missing from CMS claims data.", severity="warning"))
-        if metric.state is None or metric.national is None:
-            issues.append(DataQualityIssue(field=metric.key, message=f"{metric.label} benchmark data is incomplete.", severity="info"))
-    if request.manual.current_census is None:
-        issues.append(DataQualityIssue(field="current_census", message="Current census is manual and has not been entered.", severity="info"))
-    if parse_int(provider.get("number_of_certified_beds")) is None:
-        issues.append(DataQualityIssue(field="number_of_certified_beds", message="Certified bed count is missing from CMS.", severity="warning"))
+    for check in checks:
+        if check.status == "fail":
+            issues.append(
+                DataQualityIssue(
+                    field=check.key,
+                    message=check.message,
+                    severity="error" if check.severity == "error" else "warning",
+                )
+            )
     return issues
 
 

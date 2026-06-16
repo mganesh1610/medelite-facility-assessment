@@ -106,7 +106,7 @@ export default function App() {
 
               <div className="analytics-grid">
                 <OpportunityPanel opportunity={assessment.opportunity} />
-                <DataQuality issues={assessment.data_quality} />
+                <DataQuality checks={assessment.data_quality_checks} />
               </div>
 
               <MetricChart metrics={assessment.metrics} />
@@ -129,4 +129,3 @@ function EmptyState({ loading }: { loading: boolean }) {
     </section>
   );
 }
-

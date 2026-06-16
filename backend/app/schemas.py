@@ -89,6 +89,14 @@ class DataQualityIssue(BaseModel):
     severity: Literal["info", "warning", "error"]
 
 
+class DataQualityCheck(BaseModel):
+    key: str
+    label: str
+    status: Literal["pass", "fail"]
+    message: str
+    severity: Literal["success", "warning", "error"]
+
+
 class ExportLinks(BaseModel):
     pdf: str
     docx: str
@@ -101,8 +109,8 @@ class AssessmentResponse(BaseModel):
     report_rows: list[ReportRow]
     opportunity: OpportunityScore
     data_quality: list[DataQualityIssue]
+    data_quality_checks: list[DataQualityCheck]
     exports: ExportLinks
     cms_request_count: int
     api_latency_ms: int
     bigquery_logging: str
-

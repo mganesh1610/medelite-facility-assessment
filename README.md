@@ -80,6 +80,19 @@ BIGQUERY_TABLE=facility_assessment_runs
 GOOGLE_APPLICATION_CREDENTIALS=path-to-service-account.json
 ```
 
+For Cloud Run, do not upload service-account JSON. Use the deployed service
+account and configure BigQuery from Cloud Shell:
+
+```bash
+bash scripts/setup_bigquery_cloudrun.sh
+```
+
+Optional overrides:
+
+```bash
+REGION=europe-west1 SERVICE=medelite-facility-assessment bash scripts/setup_bigquery_cloudrun.sh
+```
+
 ## Google Cloud Run
 
 The included `Dockerfile` builds the React frontend and serves it through
@@ -88,7 +101,7 @@ FastAPI, so Cloud Run needs only one service.
 ```powershell
 gcloud run deploy medelite-facility-assessment `
   --source . `
-  --region us-central1 `
+  --region europe-west1 `
   --allow-unauthenticated
 ```
 

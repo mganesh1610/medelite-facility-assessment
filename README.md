@@ -25,12 +25,6 @@ scoring, benchmark charts, and QA checks.
 
 ![Medelite facility assessment desktop dashboard](docs/portfolio/medelite-dashboard-desktop.png)
 
-### Mobile Layout
-
-The same workflow is responsive for smaller screens.
-
-![Medelite facility assessment mobile dashboard](docs/portfolio/medelite-dashboard-mobile.png)
-
 ### PDF Export
 
 The app exports a polished facility assessment snapshot that can be shared with

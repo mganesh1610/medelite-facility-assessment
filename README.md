@@ -7,9 +7,7 @@ The app fetches live CMS nursing home data by CCN, combines it with internal
 manual operational inputs, visualizes facility-vs-benchmark performance, and
 exports polished PDF/DOCX facility assessment reports.
 
-## Recruiter Quick View
-
-Live demo:
+## Live App Link:
 
 https://medelite-facility-assessment-326422085032.europe-west1.run.app/
 

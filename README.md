@@ -7,6 +7,37 @@ The app fetches live CMS nursing home data by CCN, combines it with internal
 manual operational inputs, visualizes facility-vs-benchmark performance, and
 exports polished PDF/DOCX facility assessment reports.
 
+## Recruiter Quick View
+
+Live demo:
+
+https://medelite-facility-assessment-326422085032.europe-west1.run.app/
+
+This project demonstrates a complete healthcare data workflow: live CMS lookup,
+manual facility context capture, benchmark analytics, data quality checks, and
+client-ready report export.
+
+### App Dashboard
+
+The dashboard lets a user enter a CMS Certification Number, add operational
+context, and generate a facility assessment with star ratings, opportunity
+scoring, benchmark charts, and QA checks.
+
+![Medelite facility assessment desktop dashboard](docs/portfolio/medelite-dashboard-desktop.png)
+
+### Mobile Layout
+
+The same workflow is responsive for smaller screens.
+
+![Medelite facility assessment mobile dashboard](docs/portfolio/medelite-dashboard-mobile.png)
+
+### PDF Export
+
+The app exports a polished facility assessment snapshot that can be shared with
+stakeholders or used as a recruiting case-study artifact.
+
+![Medelite PDF facility assessment export](docs/portfolio/medelite-pdf-export.png)
+
 ## Features
 
 - Dynamic CCN lookup against CMS Provider Data Catalog.
